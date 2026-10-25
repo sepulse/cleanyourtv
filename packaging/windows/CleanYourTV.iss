@@ -52,6 +52,11 @@ Filename: "{app}\CleanYourTV.exe"; Description: "{cm:LaunchProgram,{#AppName}}";
 Type: files; Name: "{app}\cleanyourtv.ini"
 Type: filesandordirs; Name: "{app}\tools\__pycache__"
 Type: filesandordirs; Name: "{app}\tools\venv"
+; tv.py's own ADB key (KEYDIR), made when %USERPROFILE%\.android\adbkey does not exist. It is a credential
+; for every TV that accepted it, so it goes with the app; a reinstall asks "Allow USB debugging?" again.
+Type: filesandordirs; Name: "{app}\tools\adbkey"
+; The menu's last TV IP and list (cleanyourtv_menu.py STATE).
+Type: filesandordirs; Name: "{localappdata}\CleanYourTV"
 
 [CustomMessages]
 ms.TvTitle=Sediakan TV anda

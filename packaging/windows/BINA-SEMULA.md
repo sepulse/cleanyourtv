@@ -40,8 +40,12 @@ Hasilnya `packaging\windows\Output\CleanYourTV-Setup.exe`. Folder `build\` dan `
 ## Nota
 
 - Pemasangan per pengguna (tanpa admin), ke `%LOCALAPPDATA%\Programs\CleanYourTV`.
-- Uninstall membuang folder aplikasi tetapi **mengekalkan** `%USERPROFILE%\.cleanyourtv\` (rekod
-  keadaan TV sebelum perubahan, yang diperlukan untuk restore) dan `%USERPROFILE%\.android\adbkey`.
+- Uninstall membuang folder aplikasi, `%LOCALAPPDATA%\CleanYourTV\` (IP dan senarai terakhir) dan
+  kunci ADB milik `tv.py` di `tools\adbkey\`. Selepas pasang semula, TV akan bertanya "Benarkan
+  penyahpepijatan USB?" sekali lagi. Jika `%USERPROFILE%\.android\adbkey` sudah wujud (pengguna
+  Android Studio), `tv.py` menggunakan kunci itu dan uninstall tidak menyentuhnya.
+- Uninstall **mengekalkan** `%USERPROFILE%\.cleanyourtv\`, iaitu rekod keadaan TV sebelum perubahan
+  yang diperlukan untuk restore.
 - Rekod restore terikat pada alamat IP TV dan laluan penuh senarai. Jika IP TV berubah atau
   aplikasi dipasang di folder lain, `restore.ps1` akan memberi amaran dan kembali kepada cara lama
   (enable semua pakej dalam senarai).
