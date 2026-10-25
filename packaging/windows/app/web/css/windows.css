@@ -1,0 +1,5 @@
+.job-output, .list-header { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; font-size: 14px; }
+.job-output { max-height: 50vh; overflow: auto; }
+.package-copy { border-top: 1px solid var(--line); padding-top: 12px; }
+.package-copy p { white-space: pre-wrap; }
+.button[aria-pressed=true] { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }

@@ -1,4 +1,4 @@
-# Builds CleanYourTV-Setup.exe: the console menu (PyInstaller), the repo's tools and lists, an embedded
+# Builds CleanYourTV-Setup.exe: the local web UI (PyInstaller), tools, lists, launcher APK and embedded
 # Python with tools/requirements.txt, then the Inno Setup wizard. Needs Python 3.11 and Inno Setup 6.
 # Usage: powershell -ExecutionPolicy Bypass -File packaging\windows\build.ps1
 $ErrorActionPreference = 'Stop'
@@ -18,15 +18,16 @@ if (-not $iscc) { throw 'Inno Setup 6 not found: winget install -e --id JRSoftwa
 if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
 New-Item -ItemType Directory -Force $stage | Out-Null
 
-# 1. The menu as one exe.
+# 1. The local server as one exe, with its web files beside it.
 $bvenv = Join-Path $build 'venv-build'
 if (-not (Test-Path "$bvenv\Scripts\python.exe")) {
     python -m venv $bvenv
     & "$bvenv\Scripts\python.exe" -m pip install --quiet pyinstaller==6.11.1
 }
 & "$bvenv\Scripts\pyinstaller.exe" --noconfirm --onefile --console --name CleanYourTV `
-    --distpath $stage --workpath (Join-Path $build 'pyi') --specpath $build (Join-Path $here 'cleanyourtv_menu.py')
+    --distpath $stage --workpath (Join-Path $build 'pyi') --specpath $build (Join-Path $here 'app\server.py')
 if ($LASTEXITCODE -ne 0) { throw 'PyInstaller failed' }
+Copy-Item -Recurse (Join-Path $here 'app\web') "$stage\web"
 
 # 2. The repo's own tools and lists, unchanged.
 New-Item -ItemType Directory -Force "$stage\tools" | Out-Null
@@ -47,7 +48,22 @@ python -m pip install --quiet `
     --target "$pyDir\Lib\site-packages" -r (Join-Path $repo 'tools\requirements.txt')
 if ($LASTEXITCODE -ne 0) { throw 'pip install of tools\requirements.txt failed' }
 
-# 4. The wizard.
+# 4. The launcher, built once if the release APK is missing.
+$launcher = Join-Path $repo 'launcher'
+$apk = Join-Path $launcher 'app\build\outputs\apk\release\app-release.apk'
+if (-not (Test-Path $apk)) {
+    if (-not $env:ANDROID_HOME) { $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk" }
+    Push-Location $launcher
+    try {
+        & .\gradlew.bat assembleRelease
+        if ($LASTEXITCODE -ne 0) { throw 'Gradle build failed' }
+    } finally { Pop-Location }
+}
+New-Item -ItemType Directory -Force "$stage\launcher" | Out-Null
+Copy-Item $apk "$stage\launcher\tvhome.apk"
+Copy-Item (Join-Path $launcher 'build-and-install.ps1'), (Join-Path $launcher 'FONT-LICENSE-OFL.txt') "$stage\launcher"
+
+# 5. The wizard.
 & $iscc (Join-Path $here 'CleanYourTV.iss')
 if ($LASTEXITCODE -ne 0) { throw 'ISCC failed' }
 Get-ChildItem (Join-Path $here 'Output\*.exe')
