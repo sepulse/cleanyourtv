@@ -1,0 +1,23 @@
+CleanYourTV for Windows - third-party components
+=================================================
+
+CleanYourTV (tools/, examples/, LICENSE.txt) is MIT-licensed, copyright (c) 2026 Gathin,
+https://github.com/Gathin23/cleanyourtv
+
+This package also contains:
+
+| Component                 | Version | License                          | Where                                  |
+|---------------------------|---------|----------------------------------|----------------------------------------|
+| Python (embeddable)       | 3.11.9  | PSF License                      | tools\venv\Scripts\LICENSE.txt         |
+| adb-shell                 | 0.4.4   | Apache-2.0                       | tools\venv\Scripts\Lib\site-packages   |
+| rsa                       | 4.9.1   | Apache-2.0                       | tools\venv\Scripts\Lib\site-packages   |
+| pyasn1                    | 0.6.4   | BSD-2-Clause                     | tools\venv\Scripts\Lib\site-packages   |
+| cryptography              | 50.0.2  | Apache-2.0 OR BSD-3-Clause       | tools\venv\Scripts\Lib\site-packages   |
+| cffi                      | 2.1.1   | MIT-0                            | tools\venv\Scripts\Lib\site-packages   |
+| pycparser                 | 3.12    | BSD-3-Clause                     | tools\venv\Scripts\Lib\site-packages   |
+| PyInstaller bootloader    | 6.11.1  | GPL-2.0 with bootloader exception| CleanYourTV.exe                        |
+
+The full license text of each Python package is in its *.dist-info\licenses folder.
+
+The Android platform-tools (adb) are NOT included: tools\tv.py talks to the TV's network ADB
+port directly through adb-shell, so no adb binary is needed.
