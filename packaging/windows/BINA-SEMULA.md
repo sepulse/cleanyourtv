@@ -45,6 +45,7 @@ Hasilnya `packaging\windows\Output\CleanYourTV-Setup.exe`. Folder `build\` dan `
 | `Malay.isl` | Mesej Inno Setup 6 dalam Bahasa Melayu. |
 | `THIRD_PARTY_NOTICES.txt` | Lesen komponen yang disertakan. Kemas kini versi di sini jika `pip` memasang versi baharu. |
 | `_Default-en.isl`, `_Malaysian-2005.isl` | Sumber rujukan untuk terjemahan `Malay.isl`. |
+| `release_models.py` | Menjana bahagian "Semak model TV anda" dalam nota Release daripada `examples\*\tv.json`. Jalankan selepas menyegerak dengan upstream. |
 
 ## Nota
 
