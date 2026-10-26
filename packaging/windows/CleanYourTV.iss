@@ -2,7 +2,7 @@
 ; Built by build.ps1; compile alone with: ISCC.exe CleanYourTV.iss
 
 #define AppName "CleanYourTV"
-#define AppVersion "2.7.0.1"
+#define AppVersion "3.0.0.1"
 
 [Setup]
 AppId={{086B984C-5EA3-4425-949A-797A31458B44}
