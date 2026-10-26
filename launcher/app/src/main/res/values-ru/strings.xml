@@ -93,6 +93,7 @@
     <string name="off">Выкл.</string>
     <string name="enable">Включить</string>
     <string name="dock_edit">Изменить док</string>
+    <string name="power_menu">Перезагрузить…</string>
     <string name="dock_edit_hint">Выберите место в доке и нажмите ОК. Назад — готово.</string>
     <string name="dock_edit_pick_app">Теперь выберите приложение для этого места и нажмите ОК. Назад — выбрать другое место.</string>
     <string name="tile_add_to_dock">Добавить в док</string>

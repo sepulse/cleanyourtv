@@ -92,6 +92,7 @@
     <string name="card_state_new_key">Новий ключ</string>
     <string name="card_state_new_label">Нова назва</string>
     <string name="dock_edit">Редагувати док</string>
+    <string name="power_menu">Перезапустити…</string>
     <string name="dock_edit_hint">Виберіть місце в доку, яке треба змінити, і натисніть OK. «Назад» — завершити.</string>
     <string name="dock_edit_pick_app">Тепер виберіть застосунок для цього місця та натисніть OK. «Назад» — вибрати інше місце.</string>
     <string name="tile_add_to_dock">Додати в док</string>

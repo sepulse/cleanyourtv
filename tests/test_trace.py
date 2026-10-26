@@ -75,11 +75,12 @@ class FakeDevice:
 class ScenarioTest(unittest.TestCase):
     def test_setup_stays_out_of_the_recording(self):
         setup, steps = trace.scenario("home", LAUNCHER, OTHER)
-        self.assertIn(f"am start -n {OTHER}", setup)
+        self.assertIn(f"am start --activity-reorder-to-front -n {OTHER}", setup)
         self.assertEqual(steps, ["input keyevent KEYCODE_HOME", "sleep 4"])
 
     def test_cold_stops_the_launcher_before_recording_and_starts_it_inside(self):
         setup, steps = trace.scenario("cold", LAUNCHER, OTHER)
+        self.assertIn(f"am start --activity-reorder-to-front -n {OTHER}", setup)
         self.assertIn("am force-stop com.gathin.tvhome", setup)
         self.assertEqual(steps[0], "am start -W -a android.intent.action.MAIN "
                          f"-c android.intent.category.HOME -n {LAUNCHER}")

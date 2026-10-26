@@ -6,7 +6,8 @@
 # Everything is DISABLED, not uninstalled. Comment out any line you want to keep.
 #
 # Known quirk on this firmware: default_input_method points at com.baidu.input, which is not
-# installed, so no keyboard appears in search fields. Set Gboard as the IME (see README gotchas).
+# installed, so no keyboard appears in search fields. Set Gboard as the IME
+# (docs/TROUBLESHOOTING.md, "No on-screen keyboard").
 
 # Xiaomi telemetry
 com.miui.tv.analytics

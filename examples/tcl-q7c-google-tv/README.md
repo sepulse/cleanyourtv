@@ -24,7 +24,10 @@ and it is not needed.
 
 The order matters: setupwraith goes while Google TV's home still owns Home, then `build-and-install.sh` starts the
 new launcher and only then disables launcherx. `disable.sh` skips launcherx on the first run (its Home guard), which
-is what you want here.
+is what you want here, as long as no other launcher is installed: the guard holds launcherx back only when nothing
+else could answer Home, so with Projectivy or another launcher on the TV it disables launcherx in the same run, and
+that launcher takes Home until `build-and-install.sh` (with `STOCK_LAUNCHER=none`, since it does not know that
+launcher) makes the new one Home. Seen on a G08 EU unit, [tcl-g08-eu-android12](../tcl-g08-eu-android12/).
 
 ```bash
 FORCE_SETUPWRAITH=1 TV_HOST=<tv-ip> tools/disable.sh examples/tcl-q7c-google-tv/debloat.txt

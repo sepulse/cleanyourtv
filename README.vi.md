@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · Tiếng Việt · <a href="README.ja.md">日本語</a>
+  <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · Tiếng Việt · <a href="README.ja.md">日本語</a> · <a href="README.it.md">Italiano</a>
 </p>
 
 <p align="center">
@@ -50,9 +50,11 @@ Bạn cần một máy tính nối cùng mạng với TV và một trợ lý l�
 | Bước | Làm gì |
 |---|---|
 | 1. Trên TV | Vào **Cài đặt → Hệ thống (hoặc Tuỳ chọn thiết bị) → Giới thiệu**, bấm OK bảy lần vào mục **Bản dựng / Build**, quay lại mở **Tuỳ chọn nhà phát triển** và bật **USB debugging**. Nếu có thêm công tắc gỡ lỗi mạng / ADB thì bật luôn. Tên menu khác nhau tuỳ máy. |
-| 2. Trên máy tính | Dán nội dung [`PROMPT.md`](PROMPT.md) cho trợ lý và điền model TV của bạn. |
+| 2. Trên máy tính | Sao chép kho lưu trữ và mở thư mục đó trong trợ lý (`git clone https://github.com/Gathin23/cleanyourtv`), rồi dán nội dung [`PROMPT.md`](PROMPT.md) cho trợ lý và điền model TV của bạn. |
 | 3. Trả lời trợ lý | Bấm **Allow** khi TV hỏi cho phép gỡ lỗi, rồi cho trợ lý biết bạn hay dùng ứng dụng nào, muốn để app nào trên thanh dock, có giữ trợ lý giọng nói, Chromecast và cập nhật hệ thống hay không. |
 | 4. Kiểm tra | Làm theo hướng dẫn để sao lưu, dọn dẹp và cài đặt, rồi thử mở ứng dụng, nút remote, chuyển nguồn HDMI và cách khôi phục. |
+
+Vì sao cần sao chép kho lưu trữ: trợ lý dùng luôn `tools/disable.sh` và `launcher/build-and-install.sh` của kho này thay vì tự viết bộ công cụ riêng, và bản sao lưu, lớp bảo vệ Home cùng bản ghi khôi phục đều nằm trong đó.
 
 ## Launcher có gì
 

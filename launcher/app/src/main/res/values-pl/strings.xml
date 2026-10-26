@@ -66,6 +66,7 @@
     <string name="off">Wył.</string>
     <string name="enable">Włącz</string>
     <string name="dock_edit">Edytuj dock</string>
+    <string name="power_menu">Uruchom ponownie…</string>
     <string name="dock_edit_hint">Wybierz miejsce w docku do zmiany i naciśnij OK. Wstecz, aby zakończyć.</string>
     <string name="dock_edit_pick_app">Teraz wybierz aplikację, która ma się tam znaleźć, i naciśnij OK. Wstecz, aby wybrać inne miejsce.</string>
     <string name="tile_add_to_dock">Dodaj do docku</string>

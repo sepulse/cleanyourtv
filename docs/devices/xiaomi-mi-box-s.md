@@ -108,6 +108,33 @@ Two things worth knowing:
   and the rotation stops. One minute is the fastest the 2.6.0 launcher can do.
 - The launcher's Clock screensaver shows time and date only, never pictures.
 
+## Fifth unit (2026-10-25)
+
+A fifth Mi Box S, done on Windows with `tools/tv.py` and the `.ps1` scripts. Same build:
+`Xiaomi/oneday/oneday:9/PI/3933:user/release-keys`, SDK 28, `ro.adb.secure=1`, on Wi-Fi. Nothing in
+`launcher/` was changed apart from the dock and `columns` in `config.xml`.
+
+- **The Apps button costs the volume ramp.** With `com.gathin.tvhome/.HomeKeyService` bound (`dumpsys
+  accessibility` lists `Service[label=Home button, ..., capabilities=8]`), the Apps button opened Home, but a
+  held Volume up moved one step per press. With `enabled_accessibility_services` set to `''` and
+  `accessibility_enabled 0`, the same held button ramped again. Both checked by the owner on the real remote.
+  This is the trade in [the key-repeat note](tcl-55p71b-g09-key-repeat.md), here on Android TV 9. The second
+  unit enabled the helper for the Apps button and did not check a held volume key. This owner kept the ramp,
+  so the Apps button does nothing, as on the stock launcher.
+- **Projectivy Launcher was Home**, holding the Home key through its own accessibility service
+  (`ProjectivyAccessibilityService`, also a key filter). `resolve-activity` still named
+  `com.google.android.tvlauncher`, so `build-and-install.ps1` took that as the stock launcher. Projectivy was
+  disabled afterwards, in a later batch, once `mResumedActivity` showed the new launcher after Home.
+- **Two Play auto-install configs:** besides the list's `android.autoinstalls.config.xioami.mibox3` in
+  `/system/app`, an update in `/data/app` had installed `android.autoinstalls.config.xiaomi.mibox3`, spelled
+  correctly. Both were disabled with no side effects.
+- **Live Channels kept by the script:** the handler check in the disable script skipped Live Channels
+  (`com.google.android.tv`) because it answers VIEW on a channel item. That was left alone, so it is still
+  enabled.
+- The saved Wi-Fi belonged to `android.uid.system`, not setupwraith, as on the second and fourth units.
+  After a reboot all 20 disabled packages stayed disabled, and five minutes later neither PatchWall nor the
+  updater was enabled.
+
 ## Building on Windows without Android Studio
 
 `launcher/build-and-install.ps1` looks for a JDK only in `JAVA_HOME` or Android Studio's `jbr`. A

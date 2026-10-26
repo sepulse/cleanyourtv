@@ -107,6 +107,18 @@ build-tools 34.0.0; on macOS `brew install openjdk@17 android-commandlinetools` 
 `sdkmanager "platforms;android-34" "build-tools;34.0.0"`; with the newer command-line tools the form is
 `android sdk install platforms/android-34 build-tools/34.0.0`).
 
+No TV on the network, or an APK for someone else to install? Build it on its own: from `launcher/`,
+`./gradlew --no-daemon assembleRelease` leaves it at
+`launcher/app/build/outputs/apk/release/app-release.apk`, which has to stay under 589,824 B (576 KB);
+CI builds with the same command and refuses a bigger one. Gradle also has to find the SDK, and this is
+where a hand build stops: `launcher/build-and-install.sh` writes the gitignored
+`launcher/local.properties` for you, so by hand either run
+`ANDROID_HOME=~/Android/Sdk ./gradlew --no-daemon assembleRelease` or put `sdk.dir=<sdk>` in that file;
+without one or the other Gradle stops at `SDK location not found`. The JDK has to be a full 17 - a JRE
+answers `java -version` as a 17 but has no `jlink`, which the Android Gradle plugin needs (#1255) - and
+Homebrew's `openjdk@17` is keg-only, so point `JAVA_HOME` at it
+(`export JAVA_HOME=$(brew --prefix openjdk@17)`).
+
 Ideas that fit the direction: an idle screensaver with clock and ambient colour, per-TV icon packs
 for apps without banners, a settings screen to edit the dock from the TV, localisation.
 Ideas that don't: recommendation rows, content feeds, ads, telemetry.

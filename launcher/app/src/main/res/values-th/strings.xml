@@ -41,6 +41,7 @@
     <string name="off">ปิด</string>
     <string name="enable">เปิดใช้งาน</string>
     <string name="dock_edit">แก้ไขแถบแอป</string>
+    <string name="power_menu">รีสตาร์ท…</string>
     <string name="dock_edit_hint">เลือกตำแหน่งในแถบแอปที่ต้องการเปลี่ยน แล้วกด OK กดย้อนกลับเพื่อเสร็จสิ้น</string>
     <string name="dock_edit_pick_app">จากนั้นเลือกแอปที่จะวางตรงนั้น แล้วกด OK กดย้อนกลับเพื่อเลือกตำแหน่งอื่น</string>
     <string name="tile_add_to_dock">เพิ่มในแถบแอป</string>

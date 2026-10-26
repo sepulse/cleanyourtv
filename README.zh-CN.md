@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> · 简体中文 · <a href="README.vi.md">Tiếng Việt</a> · <a href="README.ja.md">日本語</a>
+  <a href="README.md">English</a> · 简体中文 · <a href="README.vi.md">Tiếng Việt</a> · <a href="README.ja.md">日本語</a> · <a href="README.it.md">Italiano</a>
 </p>
 
 <p align="center">
@@ -38,9 +38,11 @@
 | 步骤 | 操作 |
 |---|---|
 | 1. 电视端 | 打开「设置 → 设备偏好设置 → 关于」，在「版本号 / Build」上连续按七次确定，返回后进入开发者选项，开启 USB 调试。如果另有网络调试或 ADB 调试开关，也需要开启。菜单名称因机型而异。 |
-| 2. 电脑端 | 将 [`PROMPT.md`](PROMPT.md) 的内容交给助手，填写电视型号。 |
+| 2. 电脑端 | 先克隆仓库并在助手中打开该文件夹（`git clone https://github.com/Gathin23/cleanyourtv`），再将 [`PROMPT.md`](PROMPT.md) 的内容交给助手，填写电视型号。 |
 | 3. 确认需求 | 在电视上接受调试授权，告诉助手常用应用、底部快捷栏中的应用，以及是否保留语音助手、Chromecast 和系统更新。 |
 | 4. 检查结果 | 按提示完成备份、清理和安装，检查应用启动、遥控器操作、输入源和恢复路径。 |
+
+先克隆仓库的意义在于：助手会直接使用本仓库的 `tools/disable.sh` 和 `launcher/build-and-install.sh`，不会另写一套；备份、默认桌面保护和恢复记录都在其中。
 
 ## 桌面功能
 

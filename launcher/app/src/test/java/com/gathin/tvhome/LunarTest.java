@@ -1,6 +1,7 @@
 package com.gathin.tvhome;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -60,5 +61,25 @@ public class LunarTest {
         // The 1985 new year: 21 January in Vietnam (UTC+7), 20 February in China (UTC+8).
         assertArrayEquals(new int[]{1, 1, 1985, 0}, Lunar.fromSolar(21, 1, 1985, 7));
         assertArrayEquals(new int[]{1, 1, 1985, 0}, Lunar.fromSolar(20, 2, 1985, 8));
+    }
+
+    @Test
+    public void dayBeforeANewMoonJustAfterMidnightIsTheThirtieth() {
+        // The new moon of 26 March 2009 16:06 UTC is 27 March in China; the day before was day 0, not 30/2.
+        assertArrayEquals(new int[]{30, 2, 2009, 0}, Lunar.fromSolar(26, 3, 2009, 8));
+        assertArrayEquals(new int[]{1, 3, 2009, 0}, Lunar.fromSolar(27, 3, 2009, 8));
+        assertArrayEquals(new int[]{30, 3, 2001, 0}, Lunar.fromSolar(23, 4, 2001, 9));
+        assertArrayEquals(new int[]{30, 3, 2054, 0}, Lunar.fromSolar(7, 5, 2054, 7));
+    }
+
+    @Test
+    public void everyDayFrom1900To2099IsDay1To30() {
+        for (int tz = 7; tz <= 9; tz++) {
+            for (long jd = Lunar.jdFromDate(1, 1, 1900); jd < Lunar.jdFromDate(1, 1, 2100); jd++) {
+                java.time.LocalDate d = java.time.LocalDate.ofEpochDay(jd - 2440588);
+                int day = Lunar.fromSolar(d.getDayOfMonth(), d.getMonthValue(), d.getYear(), tz)[0];
+                assertTrue(d + " at UTC+" + tz + " is day " + day, day >= 1 && day <= 30);
+            }
+        }
     }
 }

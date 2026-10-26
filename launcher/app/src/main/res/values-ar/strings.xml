@@ -66,6 +66,7 @@
     <string name="off">إيقاف</string>
     <string name="enable">تفعيل</string>
     <string name="dock_edit">تعديل شريط التطبيقات</string>
+    <string name="power_menu">إعادة التشغيل…</string>
     <string name="dock_edit_hint">اختر الموضع الذي تريد تغييره في الشريط واضغط موافق. اضغط رجوع للإنهاء.</string>
     <string name="dock_edit_pick_app">اختر الآن التطبيق الذي تريد وضعه هناك واضغط موافق. اضغط رجوع لاختيار موضع آخر.</string>
     <string name="tile_add_to_dock">إضافة إلى الشريط</string>

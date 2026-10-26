@@ -1,8 +1,9 @@
 # TCL Smart TV Pro, UK Freeview Play (BeyondTV4 / BeyondTV6, AR05), Android TV 11
 
 From @seancondev's report in #1110: one session on one set, an 11-package debloat in four batches with a
-screenshot after each, then a reboot. This is **not a several-day list**, and the report does not name the 11
-packages, so there is nothing here to apply. It records what differs on this firmware from the
+screenshot after each, then a reboot. The packages are in
+[`examples/tcl-beyondtv4-uk/debloat.txt`](../../examples/tcl-beyondtv4-uk/debloat.txt).
+It records what differs on this firmware from the
 [`tcl-50c725k`](../../examples/tcl-50c725k/debloat.txt) list, which is the same platform on a later build.
 
 | Field | Observed value |
@@ -59,5 +60,4 @@ buffer was empty, four HDMI inputs were listed, Live TV opened from the Inputs m
 returned Home. The owner confirmed Home, Input/Source, the gear, Netflix and YouTube on the real remote, and that
 holding Volume Up still ramps.
 
-Not checked: HDMI picture and sound with a live source, tuner reception, and days of use. A list for
-`examples/` can follow once the set has been lived with and the packages are named.
+Not checked: HDMI picture and sound with a live source, and tuner reception.

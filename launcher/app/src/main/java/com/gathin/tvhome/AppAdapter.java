@@ -425,6 +425,16 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             iconLp.width = iconLp.height = Math.round(h * ICON_SHARE);
             iconLp.bottomMargin = 0;
             icon.setLayoutParams(iconLp);
+        } else if (h < Math.round(DESIGN_H_DP * density)) {
+            // Shrunk tiles (e.g. 5 or 6 columns): scale icon and bottom margin proportionally with tile height so the label does not overlap the icon.
+            View icon = v.findViewById(R.id.icon);
+            FrameLayout.LayoutParams iconLp = (FrameLayout.LayoutParams) icon.getLayoutParams();
+            float scale = (float) h / (DESIGN_H_DP * density);
+            iconLp.width = iconLp.height = Math.round(48f * density * scale);
+            iconLp.bottomMargin = Math.round(14f * density * scale);
+            icon.setLayoutParams(iconLp);
+            View label = v.findViewById(R.id.label);
+            label.setPadding(label.getPaddingLeft(), label.getPaddingTop(), label.getPaddingRight(), Math.round(4f * density));
         }
         return new Holder(v, listener, animations, advancedEffects, reducedMotion, restNameAlpha, focusOvershoot);
     }

@@ -8,6 +8,11 @@
 # Tested 21 October 2026 on one set. All 24 packages below are disabled on that set and it boots, plays
 # HDMI/Live TV and opens the source menu normally.
 #
+# Second unit: TCL 75Q7C (G08_4K_GB, same model "Smart TV Pro"), firmware STT2.221228.001 AS36, Spain, on
+# Ethernet, 25 October 2026, with the Clean Your TV launcher as Home (README). The list below applied unchanged
+# (com.tcl.browser is not on AS36). AS36 also has five TCL packages AS34 did not: they are at the end as
+# comments, disabled on that set for one day only.
+#
 # Apply:   TV_HOST=<tv ip> tools/disable.sh examples/tcl-g08-eu-android12/debloat.txt
 # Undo:    TV_HOST=<tv ip> tools/restore.sh examples/tcl-g08-eu-android12/debloat.txt
 # Everything is DISABLED, not uninstalled. Comment out any line you want to keep.
@@ -48,6 +53,14 @@ com.google.android.videos              # Play Movies storefront
 com.google.android.tts                 # TTS (left on purpose if you use voice TTS screens)
 com.google.android.apps.tv.dreamx      # photo screensaver
 com.android.printspooler
+
+# AS36 only (second unit), disabled there on 25 Oct 2026 with nothing missed after a reboot - one day, so left
+# commented until someone lives with them longer. The Q7C and US G08 lists disable all five.
+# com.tcl.channelplus                  # TCL Live FAST channels
+# com.tcl.esticker                     # retail-demo sticker
+# com.tcl.usercenter                   # TCL account sign-in nags
+# com.tcl.waterfall.overseas           # TCL movie/show recommendation browser
+# com.tcl.guard                        # TCL "cleaner" / app manager
 
 # DO NOT DISABLE - verified on this set, 21 Oct 2026:
 # com.tcl.autopair   - Bluetooth remote pairing. Disable it and a remote that unpairs (battery

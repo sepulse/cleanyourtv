@@ -26,7 +26,8 @@ The tables live between <!-- tv-table:start ... --> and <!-- tv-table:end --> li
 between <!-- tv-brands:start ... --> and <!-- tv-brands:end -->; everything outside them is hand-written.
 The counts are the card's alt text ("N TV models · B brands · L languages · "), the "| **L languages** |"
 feature row and STATS in tools/readme_stats.py. Exit codes: 0 up to date (or written), 1 out of date
-(--check), 2 a tv.json or a marker is wrong.
+(--check), 2 what it was given cannot be read: a tv.json, a marker, or the path in --root or --adopt
+(nothing is written then).
 """
 import argparse
 import json
@@ -90,7 +91,9 @@ def load(root):
         if "readme_os" in data:
             problems += check_cell(where, "readme_os", data["readme_os"])
         for key in ("tv", "notes"):
-            for target in LINK.findall(data.get(key) or ""):
+            value = data.get(key)
+            # A value that is not a string has no link to read, and check_cell has already said it is wrong.
+            for target in LINK.findall(value if isinstance(value, str) else ""):
                 if re.match(r"^(https?:|mailto:|#)", target):
                     continue
                 if not (root / "examples" / target.split("#")[0]).exists():
@@ -277,6 +280,33 @@ def adopt(root, patch_text):
     return out
 
 
+def read_inputs(root, patch):
+    """(the patch's text or None, the reason this run cannot start or None).
+
+    Nothing is read or written when this returns a reason. Exit 1 is the code main's "README tables" job
+    reads as "the tables are out of date", so a path this script cannot read must not come back as 1: a
+    `--root` that is not a checkout (a typo, a worktree that was removed) and an `--adopt` patch that is
+    not there both ended in a FileNotFoundError traceback before, which is exit 1 - the one answer that
+    says the generated files are stale when in fact nothing was read at all.
+    """
+    if not root.is_dir():
+        return None, f"--root '{root}': not a folder. Nothing was read or written."
+    # examples/ is what it reads; the three OWNED files are the parts of the checkout it writes.
+    needs = ["examples"] + list(OWNED)
+    missing = [f"{n}/" if n == "examples" else n for n in needs if not (root / n).exists()]
+    if missing:
+        return None, (f"--root '{root}': no {', no '.join(missing)} in it. Point --root at a checkout of this "
+                      f"repository: nothing was read or written.")
+    if patch is None:
+        return None, None
+    try:
+        return Path(patch).read_text(encoding="utf-8"), None
+    except OSError as e:
+        # A path that is a directory is OSError too (IsADirectoryError), so this covers a patch folder.
+        # The path is quoted so an empty --adopt ('' or a stray pair of quotes) is visible in the line.
+        return None, f"--adopt: cannot read '{patch}': {e.strerror}. Nothing was written."
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--root", default=str(Path(__file__).resolve().parents[1]))
@@ -290,9 +320,13 @@ def main(argv=None):
         # then turn that into a CalledProcessError traceback, which names neither the file nor where it is.
         ap.error(f"cannot open the font at {a.font}: Fredoka (variable TTF, Google Fonts) is not in this repo")
     root = Path(a.root)
+    patch, problem = read_inputs(root, a.adopt)
+    if problem:
+        print(problem, file=sys.stderr)
+        return 2
     try:
         if a.adopt:
-            for name, what in adopt(root, Path(a.adopt).read_text(encoding="utf-8")):
+            for name, what in adopt(root, patch):
                 print(f"examples/{name}/tv.json: {what}")
         if a.check:
             out = stale(root)
@@ -311,8 +345,10 @@ def main(argv=None):
         return 2
     if "tools/readme_stats.py" in changed:
         if a.font:
+            # The font was checked from where this runs; the scripts run in the checkout, so hand them the full path.
+            font = str(Path(a.font).resolve())
             for script, out in (("tools/readme_stats.py", "docs/stats.png"), ("tools/readme_card.py", "docs/card.jpg")):
-                subprocess.run([sys.executable, script, a.font, out], cwd=root, check=True)
+                subprocess.run([sys.executable, script, font, out], cwd=root, check=True)
             changed += ["docs/stats.png", "docs/card.jpg"]
         else:
             print("A count changed: redraw docs/stats.png and docs/card.jpg (--font Fredoka.ttf, or "

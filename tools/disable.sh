@@ -283,8 +283,47 @@ fi
   echo "pm list packages -d"
 } | "$PY" -I tools/tv.py --batch
 
+# Read the TV back instead of trusting the batch's silence (#1376). A `pm disable-user` the firmware
+# refuses is a stack trace scrolling past in the output above, one that does not take says nothing at
+# all, and the run ended with status 0 either way: on a Philips 70PUS8505 one package of a batch was
+# still enabled in two runs out of six, and a TV that refuses every package (#577, #1185) looked like
+# a list that went through. `-e` lists enabled packages only, so a listed package that is not on this
+# TV, or that the factory had already disabled, is never named. Ask for user 0, the user the batch
+# disables for: on Android 14 a plain `pm list packages` merges the answers of every user, and a
+# second Google TV profile, which is another Android user, keeps its own enabled copy of each package,
+# so it would read as one this run left on. Packages a guard above skipped are out of $PKGS already,
+# so their own message is the only one. A read that fails or lists nothing only says the check did
+# not run; the batch itself went through.
+STILL_ON=""
+if [ -n "$PKGS" ]; then
+  ENABLED="$("$PY" -I tools/tv.py 'pm list packages -e --user 0' 2>/dev/null | tr -d '\r' \
+    | sed -n -E 's/^package:([^[:space:]]+).*/\1/p')" || ENABLED=""
+  if [ -z "$ENABLED" ]; then
+    echo "Could not check which listed packages are still enabled: tv.py failed, or the TV listed" \
+      "no package for 'pm list packages -e --user 0'. Compare 'pm list packages -d --user 0'" \
+      "with the list by hand." >&2
+  else
+    # Whole names, in the list's order, each once.
+    STILL_ON="$(printf '%s\n' "$PKGS" | grep -xF "$ENABLED" | awk '!seen[$0]++' || true)"
+    if [ -n "$STILL_ON" ]; then
+      { echo "Still enabled after this run, although the list disables them:"
+        printf '%s\n' "$STILL_ON" | sed 's/^/  /'
+        echo "The TV did not take pm disable-user for these: it refused (its answer is in the output"
+        echo "above), or the change did not hold. Do not run the list again in a loop. Run"
+        echo "tools/tv.py 'pm disable-user --user 0 <package>' once by hand for each, or the list once"
+        echo "more after a reboot. If every listed package stays enabled, this firmware refuses"
+        echo "pm disable-user: stop there and say so (docs/TROUBLESHOOTING.md,"
+        echo "\"Every way of disabling a package is refused\")."; } >&2
+    fi
+  fi
+fi
+
 if [ "$ADB_SECURE" = "0" ]; then
   echo "Warning: this TV reports ro.adb.secure=0, so network ADB on port 5555 accepts any device on" >&2
   echo "your network without the \"Allow\" prompt. When you are done, turn USB debugging and" >&2
   echo "Network/ADB debugging off on the TV and reboot it (README: \"Isn't ADB access a security hole?\")." >&2
 fi
+
+# Last, so the warning above is printed either way: a listed package the TV left enabled fails the
+# run, as it does in check.py --fix, and a script or agent that goes on after this one stops here.
+[ -z "$STILL_ON" ] || exit 1

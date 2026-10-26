@@ -48,3 +48,28 @@ note; this section covers the launcher side.
   persistence and run the idle-log check; the launcher, the Settings-button mapping and
   `com.google.android.tvrecommendations` (disabled after the launcher took Home) have not yet been
   through a reboot on this unit.
+
+## Philips 65OLED804/12: notes after three days
+
+Checked on a Philips 65OLED804/12 (OLED, 2019, Germany), same board and Android 12 firmware as the lead
+unit (`STT2.230526.001`); it shipped with Android TV 9. Package details are in `debloat.txt`'s "Fifth
+unit" note; this section covers the launcher side.
+
+- The install script ran through: cold start in about 1.3 s, without the first-start timeout the
+  75PUS8505 list describes. With
+  the stock launcher still enabled, Home stayed with it (its HOME filter has priority 2, as the
+  75PUS8505 list explains); the new launcher took Home the moment the stock one was disabled. The Home
+  key from Live TV then landed on `com.gathin.tvhome/.MainActivity` (`mFocusedApp`).
+- config.xml as on the 65PUS9435: `live_tv_package` `org.droidtv.playtv`; `hidden_apps`
+  `org.droidtv.playtv`, `org.droidtv.demome`, `org.droidtv.eum`, `org.droidtv.channels`,
+  `com.vewd.core.browserui`.
+- The Inputs menu listed HDMI 1 to 4, YPbPr and Live TV, with the HDMI-CEC name of a home cinema system on
+  HDMI 1. Sound runs over HDMI ARC to that system; single Volume Up/Down presses reach it with or without
+  the key helper.
+- A held Home press did nothing with this household's slow third-party remote, until
+  `home_long_press_home` was set and the launcher reinstalled with `-HomeKeyService`. The cause and the
+  log lines are in `docs/TROUBLESHOOTING.md`. It was first noticed after a Blu-ray player woke the TV over
+  HDMI-CEC and the TV came up on that input; that turned out to be a coincidence, as the same held press
+  failed from Live TV too.
+- Everything above survived three restarts, one of them a cold start; the TV comes back on Live TV
+  after power-on, as the firmware does by itself, and Home from there opens the launcher.

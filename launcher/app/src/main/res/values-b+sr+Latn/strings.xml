@@ -47,6 +47,7 @@
     <string name="off">Isklj.</string>
     <string name="enable">Uključi</string>
     <string name="dock_edit">Uredi dok</string>
+    <string name="power_menu">Ponovo pokreni…</string>
     <string name="dock_edit_hint">Izaberite mesto u doku i pritisnite OK. Nazad za kraj.</string>
     <string name="dock_edit_pick_app">Sada izaberite aplikaciju za to mesto i pritisnite OK. Nazad da izaberete drugo mesto.</string>
     <string name="tile_add_to_dock">Dodaj u dok</string>

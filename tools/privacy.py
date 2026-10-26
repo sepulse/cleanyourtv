@@ -78,6 +78,27 @@ CATALOGUE = {
         "telemetry",
         "feedback reports to Google",
     ),
+    "com.android.tv.feedbackconsent": (
+        "telemetry",
+        "Android TV's consent screen for feedback reports: once the owner agrees, it collects the bug "
+        "report and system logs for the app that asked; disabled with com.google.android.feedback in "
+        "about one in five lists in examples/",
+    ),
+    "com.google.android.tv.remotecontrol.logging": (
+        "telemetry",
+        "remote usage logging, as the Chromecast HD and 4K and Google TV Streamer lists call it; "
+        "a boot receiver with Bluetooth permissions and no INTERNET permission of its own",
+    ),
+    "com.google.android.apps.tv.netoscope": (
+        "telemetry",
+        "Google TV network diagnostics: it can read dumpsys (DUMP) and holds INTERNET and Wi-Fi "
+        "permissions; the Chromecast with Google TV 4K lists disable it",
+    ),
+    "com.google.android.partnersetup": (
+        "telemetry",
+        "Google Partner Setup: RLZ partner-attribution pings, with a ping receiver that also runs "
+        "at boot; disabled in about a third of the lists in examples/",
+    ),
 }
 
 # A package found only by its name is reported apart and never written into the list by default:
@@ -100,6 +121,18 @@ TITLES = (
 # `dumpsys package` is slow on old firmware; a TV with fifty name matches is not worth ten minutes.
 MAX_PROBES = 25
 SYSTEM_UID = 1000
+# The package's own UID line in `dumpsys package`: `userId=` up to Android 13, `appId=` from 14. It is
+# anchored to the start of a line, so an install permission that differs for a second user, which
+# ends with ", userId=10", is never read as the package's UID.
+UID_RE = re.compile(r"^\s*(?:userId|appId)=(\d+)", re.M)
+# Only the package's own "requested permissions" block counts, as in tools/check.py: the same dump
+# prints its shared user's permissions, and on a system-UID package those include RECORD_AUDIO.
+REQUESTED_RE = re.compile(r"requested permissions:(.*?)"
+                          r"(?:\n\s*(?:install|runtime) permissions:|\n\s*User \d+:|$)", re.S)
+# Android 5.x prints no "requested permissions" block, only the package's own "grantedPermissions:"
+# at the end of its section. A package in a shared UID has none there: on 5.x its grants are the
+# shared user's, printed under "Shared users:", so probe() reads no block past that header.
+GRANTED_RE = re.compile(r"\n {4}grantedPermissions:\n((?: {6}\S.*(?:\n|$))*)")
 
 
 def shell(dev, command):
@@ -167,9 +200,11 @@ def probe(dev, name):
     uid = None
     declared = None
     if dump:
-        found = re.search(r"\buserId=(\d+)", dump)
+        found = UID_RE.search(dump)
         uid = int(found.group(1)) if found else None
-        declared = "RECORD_AUDIO" in dump
+        own = dump.split("\nShared users:", 1)[0]
+        block = REQUESTED_RE.search(own) or GRANTED_RE.search(own)
+        declared = bool(block and "android.permission.RECORD_AUDIO" in block.group(1))
     ops = shell(dev, f"appops get {name} RECORD_AUDIO")
     return {"uid": uid, "declared": declared, "appops": ops}
 
@@ -276,7 +311,8 @@ def print_report(result):
               f"{MAX_PROBES}); check them by hand with `dumpsys package <name>`.")
         print()
     print("What to do with it")
-    print("  tools/privacy.py --write privacy.txt        # the voice, ACR and telemetry rows above")
+    print("  TV_HOST=<tv ip> tools/venv/bin/python -I tools/privacy.py --write privacy.txt   "
+          "# the voice, ACR and telemetry rows above")
     print("  TV_HOST=<tv ip> tools/disable.sh privacy.txt   # applies it, records the undo first")
     print("  TV_HOST=<tv ip> tools/restore.sh privacy.txt   # undo")
     print()
@@ -312,6 +348,15 @@ def list_lines(result, include_low, name):
         "# Each line says what the package is and why it is here. Nothing below is proven to record",
         "# anything: the audit reports what the firmware and the packages declare.",
     ]
+    if include_low and result["skipped"]:
+        # The report counts the name matches the probe cap left out; a list of name matches that
+        # does not would look complete.
+        lines += [
+            "#",
+            f"# {result['skipped']} more name matches were not probed (the audit stops at "
+            f"{MAX_PROBES}) and are not in this list;",
+            "# check them by hand with `dumpsys package <name>`.",
+        ]
     for title, group in sections(keep):
         lines.append("")
         lines.append(f"# {title}")
@@ -323,11 +368,23 @@ def list_lines(result, include_low, name):
     return lines
 
 
-def write_list(path, result, include_low):
+def target_problem(path):
+    """Why --write cannot write the file `path`, or None."""
     if os.path.exists(path):
         # A second audit of the same TV may legitimately differ, but silently replacing a list the
         # owner is about to apply is how a hand edit disappears.
-        raise SystemExit(f"{path} already exists; move it aside or choose another name.")
+        return f"{path} already exists; move it aside or choose another name."
+    folder = os.path.dirname(path) or "."
+    if not os.path.isdir(folder):
+        return f"there is no folder {folder} for {path}; create it or choose another name."
+    return None
+
+
+def write_list(path, result, include_low):
+    # main() checked before the audit too; this is for a file or folder that changed while it ran.
+    problem = target_problem(path)
+    if problem:
+        raise SystemExit(problem)
     # The header names the file as it was typed, like the commands printed below; an absolute path
     # is cut to the file name, which keeps the owner's home folder out of the list.
     lines = list_lines(result, include_low, os.path.basename(path) if os.path.isabs(path) else path)
@@ -335,6 +392,10 @@ def write_list(path, result, include_low):
         f.write("\n".join(lines) + "\n")
     names = sum(1 for line in lines if line and not line.startswith("#"))
     print(f"wrote {names} packages to {path}")
+    if include_low and result["skipped"]:
+        print(f"{result['skipped']} more name matches were not probed (the audit stops at "
+              f"{MAX_PROBES}), so the list leaves them out; check them by hand with "
+              "`dumpsys package <name>`.")
     print(f"apply:   TV_HOST={os.environ.get('TV_HOST', '<tv ip>')} tools/disable.sh {path}")
     print(f"undo:    TV_HOST={os.environ.get('TV_HOST', '<tv ip>')} tools/restore.sh {path}")
     print(f"read it first: the comments say what each one takes with it.")
@@ -349,6 +410,13 @@ def main():
                          "       privacy.py --write <file> [--include-low]\n"
                          "                                    write the candidates as a debloat list\n")
         return 2
+
+    if args:
+        # Checked before connecting: the audit sends two commands for every package it probes,
+        # and `dumpsys package` is slow on old firmware, all for a file that could not be written.
+        problem = target_problem(args[1])
+        if problem:
+            raise SystemExit(f"{problem} Nothing was asked of the TV.")
 
     dev = connect()
     try:

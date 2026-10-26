@@ -95,6 +95,8 @@
     <string name="card_state_new_key">New key</string>
     <string name="card_state_new_label">New name</string>
     <string name="dock_edit">Edit dock</string>
+    <!-- Settings menu: opens the system power menu (Restart on most TVs). -->
+    <string name="power_menu">Restart…</string>
     <string name="dock_edit_hint">Choose the dock place to change and press OK. Back to finish.</string>
     <string name="dock_edit_pick_app">Now choose the app to put there and press OK. Back to choose another place.</string>
     <string name="tile_add_to_dock">Add to dock</string>

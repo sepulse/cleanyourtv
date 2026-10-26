@@ -63,10 +63,15 @@ The passthrough channel URI the launcher sends is accepted but does not switch t
 and an integer extra `input` does, with the same numbering as the MiTV-MFTR0
 ([`xiaomi-mitv-mftr0-freeguy.txt`](xiaomi-mitv-mftr0-freeguy.txt)):
 
+The ready-to-push overlay is [`examples/xiaomi-mitv-mteq0/config.json`](../../examples/xiaomi-mitv-mteq0/config.json):
+push it with `TV_HOST=<tv ip> tools/theme.sh examples/xiaomi-mitv-mteq0` after installing the launcher.
+It keeps the shared launcher defaults unchanged and applies this route only when this device profile is pushed.
+
 | Input | TvInputInfo ID | `input` |
 |---|---|---|
 | HDMI 1 | `com.mediatek.tvinput/.hdmi.HDMIInputService/HW5` | 23 |
 | HDMI 2 | `com.mediatek.tvinput/.hdmi.HDMIInputService/HW6` | 24 |
+| HDMI 3 | `com.mediatek.tvinput/.hdmi.HDMIInputService/HW7` | 25 |
 | AV | `com.mediatek.tvinput/.composite.CompositeInputService/HW2` | 2 |
 
 An HDMI-CEC device appears as an extra input (`.../HDMI200008`) whose parent is the port it is on.

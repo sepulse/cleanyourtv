@@ -76,6 +76,7 @@
     <string name="card_state_new_key">Nieuwe sleutel</string>
     <string name="card_state_new_label">Nieuwe naam</string>
     <string name="dock_edit">Dock bewerken</string>
+    <string name="power_menu">Opnieuw opstarten…</string>
     <string name="dock_edit_hint">Kies de plek in het dock die je wilt wijzigen en druk op OK. Terug om te stoppen.</string>
     <string name="dock_edit_pick_app">Kies nu de app voor die plek en druk op OK. Terug om een andere plek te kiezen.</string>
     <string name="tile_add_to_dock">Toevoegen aan dock</string>

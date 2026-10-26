@@ -76,6 +76,7 @@
     <string name="card_state_new_key">Yangi kalit</string>
     <string name="card_state_new_label">Yangi nom</string>
     <string name="dock_edit">Dockni tahrirlash</string>
+    <string name="power_menu">Qayta ishga tushirish…</string>
     <string name="dock_edit_hint">Oʻzgartiriladigan joyni tanlab, OK ni bosing. Tugatish uchun Back.</string>
     <string name="dock_edit_pick_app">Endi u yerga qoʻyiladigan ilovani tanlab, OK ni bosing. Boshqa joy tanlash uchun Back.</string>
     <string name="tile_add_to_dock">Dockga qoʻshish</string>

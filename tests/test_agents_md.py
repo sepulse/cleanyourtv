@@ -35,9 +35,23 @@ def text():
 
 
 def ignored_prefixes():
-    """Folders .gitignore names: they exist on a contributor's machine, not in a clone."""
-    lines = (ROOT / ".gitignore").read_text(encoding="utf-8").split("\n")
-    return [l.strip().rstrip("/") for l in lines if l.strip().endswith("/") and not l.startswith("#")]
+    """Folders .gitignore names: they exist on a contributor's machine, not in a clone.
+
+    An entry only counted as a folder while it ended in `/`, so `tools/venv` - which .gitignore
+    writes without one - was never in this list: the check then wanted `tools/venv/bin/pip` to
+    exist, which it does only because CI builds the venv before running the suite. A name whose
+    last part has no extension counts as a folder too, and on Windows that venv's `pip` lives in
+    `Scripts/`, not `bin/`.
+    """
+    folders = []
+    for line in (ROOT / ".gitignore").read_text(encoding="utf-8").split("\n"):
+        entry = line.strip()
+        if not entry or entry.startswith("#"):
+            continue
+        last = entry.rsplit("/", 1)[-1]
+        if entry.endswith("/") or ("*" not in entry and "." not in last):
+            folders.append(entry.rstrip("/"))
+    return folders
 
 
 def file_names():

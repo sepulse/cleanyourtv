@@ -38,7 +38,7 @@ except ImportError:
 
 LOGOS = ["techcrunch", "techradar", "tomsguide", "mashable", "androidauthority", "xda", "flatpanelshd", "itsfoss",
          "phandroid", "gigazine", "xataka", "winfuture", "frandroid", "macitynet", "techaeris", "techpp"]
-MORE = "+180 more  ·  196 articles from 32 countries"
+MORE = "+181 more  ·  197 articles from 32 countries"
 W, LH, GAP, ROWGAP, PAD = 1600, 54, 40, 36, 80
 def f(size, wt):
     x = ImageFont.truetype(FONT, size); x.set_variation_by_axes([wt]); return x

@@ -4,6 +4,27 @@
 # only (armeabi-v7a).
 # Unlike the G08 TCL Google TVs, Live TV and HDMI are MediaTek's com.mediatek.wwtv.tvcenter, not com.tcl.tv.
 #
+# A TCL 40" 2K QHD Google TV (V5C series), same device/product on a newer firmware sub-build
+# (UKN2.241110.001 AU13, security patch 2026-06-01): the debloat packages below all applied cleanly and reboot-checked (storage 66%->53%
+# after also running `cmd package trim-caches`). com.mediatek.MtkDemo (MediaTek's demo app, not in
+# this unit's build) was also disabled there with no issue.
+#
+# The launcher half now works on the AU13 unit too, confirming it was never an AU13-specific
+# regression: the first two attempts skipped Batch 3 (setupwraith stayed enabled) and both landed on
+# its RecoveryActivity, exactly as this list's own Batch 3 note predicts. Redone with setupwraith
+# disabled first (Wi-Fi forgotten/re-joined, as below), then the same build-and-install.sh sequence -
+# reboot-checked, Home came back on launcher/ cleanly (home splash to usable Home in ~10s, vs. hanging
+# indefinitely on the attempts that skipped setupwraith).
+#
+# On the AU13 unit, settings_key_keycodes=[83] (the known quirk below) restored the gear/Settings
+# button as expected. But fixing it costs the same thing noted for the G09 unit elsewhere in this repo:
+# once HomeKeyService is bound at all (HOME_KEY_SERVICE=1), long-pressing volume steps once instead of
+# ramping - confirmed here too, and confirmed by logcat to be unfixable from app code on this firmware:
+# `interceptKeyBeforeQueueing`/`interceptKeyBeforeDispatching` (WindowManager) handle volume directly,
+# with zero trace of AccessibilityInputFilter or this app anywhere near the event. Volume keys never
+# reach any accessibility service's onKeyEvent on this unit, so no app-side remap or synthesized repeat
+# can restore ramping without root. All-or-nothing, same as the G09 case; this one chose the gear button.
+#
 # Apply:   TV_HOST=<tv ip> tools/disable.sh examples/tcl-43s5k/debloat.txt
 # Undo:    TV_HOST=<tv ip> tools/restore.sh examples/tcl-43s5k/debloat.txt com.google.android.apps.tv.launcherx
 # Everything is DISABLED, not uninstalled. Comment out any line you want to keep.
@@ -84,6 +105,7 @@ com.google.android.play.games          # [43S5K ONLY]
 com.google.android.feedback
 com.android.tv.feedbackconsent
 com.google.android.katniss             # Google Assistant voice (mic button), about 63 MB; off by choice; [43S5K ONLY]
+com.mediatek.MtkDemo                   # MediaTek demo app; not on the AU10 units, seen on the AU13 unit
 
 # Batch 3: setup wizard. It claims HOME (RecoveryActivity, priority 1) once launcherx is gone.
 # 43S5K: disabled while launcherx still owned Home, and only after the Wi-Fi network was forgotten and

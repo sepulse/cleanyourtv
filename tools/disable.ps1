@@ -205,7 +205,40 @@ if ($LASTEXITCODE -ne 0) { throw 'no recovery record was written, so nothing was
 
 $cmds = @($pkgs | ForEach-Object { "pm disable-user --user 0 $_" }) + 'pm list packages -d'
 $cmds | & $py -I (Join-Path $repo 'tools\tv.py') --batch
+$batchExit = $LASTEXITCODE
+
+# Same as disable.sh (#1376): read the TV back instead of trusting the batch's silence. `-e` lists enabled
+# packages only, so one that is not on this TV, or that the factory had already disabled, is never named.
+# Ask for user 0, the user the batch disables for: on Android 14 a plain `pm list packages` merges the
+# answers of every user, and a second Google TV profile (another Android user) keeps its own enabled copy
+# of each package. A listed package still enabled fails the run; a read that fails or lists nothing only
+# says the check did not run. Packages a guard above skipped are out of $pkgs already.
+$stillOn = @()
+if ($pkgs.Count -gt 0) {
+    # Windows PowerShell turns redirected stderr into an error that 'Stop' would throw (see getprop).
+    $ErrorActionPreference = 'Continue'
+    $answer = @(& $py -I $tvPy 'pm list packages -e --user 0' 2>$null)
+    $read = $LASTEXITCODE -eq 0
+    $ErrorActionPreference = 'Stop'
+    # A failed read is discarded whole, as disable.sh does: partial output is not the enabled list.
+    $enabled = @()
+    if ($read) {
+        $enabled = @($answer | ForEach-Object { if ("$_".Trim() -match '^package:(\S+)') { $Matches[1] } })
+    }
+    if ($enabled.Count -eq 0) {
+        Write-Warning "Could not check which listed packages are still enabled: tv.py failed, or the TV listed no package for 'pm list packages -e --user 0'. Compare 'pm list packages -d --user 0' with the list by hand."
+    } else {
+        $stillOn = @($pkgs | Where-Object { $enabled -contains $_ } | Select-Object -Unique)
+        if ($stillOn.Count -gt 0) {
+            Write-Warning "Still enabled after this run, although the list disables them: $($stillOn -join ', '). The TV did not take pm disable-user for these: it refused (its answer is in the output above), or the change did not hold. Do not run the list again in a loop. Run tools\tv.py 'pm disable-user --user 0 <package>' once by hand for each, or the list once more after a reboot. If every listed package stays enabled, this firmware refuses pm disable-user: stop there and say so (docs\TROUBLESHOOTING.md, `"Every way of disabling a package is refused`")."
+        }
+    }
+}
 
 if ($adbSecure -eq '0') {
     Write-Warning "This TV reports ro.adb.secure=0, so network ADB on port 5555 accepts any device on your network without the `"Allow`" prompt. When you are done, turn USB debugging and Network/ADB debugging off on the TV and reboot it (README: `"Isn't ADB access a security hole?`")."
 }
+if ($batchExit -ne 0) { throw "tv.py --batch failed (exit code $batchExit): the list may be only partly applied; run it again once the TV answers" }
+# Last, so the warnings above are printed either way: a listed package the TV left enabled fails the
+# run, as in disable.sh.
+if ($stillOn.Count -gt 0) { exit 1 }

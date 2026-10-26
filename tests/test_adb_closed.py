@@ -95,6 +95,27 @@ class AdbClosedTest(unittest.TestCase):
         self.assertEqual(result.returncode, 1, result.stderr)
         self.assertIn(f"127.0.0.1:{port} is still open", result.stderr)
 
+    def test_a_name_that_is_not_a_hostname_is_not_an_open_port(self):
+        # getaddrinfo runs the name through the idna codec, which raises UnicodeError on an empty or
+        # over-long label (a doubled dot, a 70-character label) rather than the gaierror an unresolvable
+        # name gives. Uncaught, that was a traceback that ended in exit 1 - the code this tool reserves
+        # for "the port is still open" - so a typo in the address read as an open port at the closing
+        # step the prompt sends an assistant to.
+        for address in ("192.168.1..50", ".", "192.168.1.50..", "a" * 70 + ".com", "192.168.1..50:5555"):
+            with self.subTest(address=address):
+                result = check(address)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertIn("not a hostname", result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
+                self.assertNotIn("still open", result.stderr)
+                self.assertEqual(result.stdout, "")
+
+    def test_a_refused_check_names_the_address_it_was_given(self):
+        # Whatever the reason, the message has to name the address the owner typed: the one reading
+        # "could not check" is the one who can see the typo.
+        result = check("192.168.1..50")
+        self.assertIn("could not check 192.168.1..50:5555", result.stderr)
+
     def test_bad_arguments(self):
         self.assertEqual(check("127.0.0.1", "not-a-port").returncode, 2)
         self.assertEqual(check("127.0.0.1:not-a-port").returncode, 2)

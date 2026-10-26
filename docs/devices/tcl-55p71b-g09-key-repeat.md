@@ -155,6 +155,51 @@ own key log (`WindowManager: interceptKeyTi keyCode=24 down=true repeatCount=0`)
 it. The empty-list control was not run there either. The owner kept the helper for the YouTube, Prime
 Video, Disney+, Peacock and gear buttons and lives with one step per press.
 
+## A TCL G08 on Android 12, and `consume_volume_keys`
+
+A TCL 75Q7C (G08, Google TV 12, `STT2.221228.001 AS36`, the second unit in
+[`examples/tcl-g08-eu-android12`](../../examples/tcl-g08-eu-android12/README.md)) does the same with both helpers
+bound: a two-second hold of volume up logs one `handleKeyBeforeQueueing ... ACTION_DOWN ... KEYCODE_VOLUME_UP
+... repeatCount=0`, the `ACTION_UP` two seconds later, and one volume change (`setStreamVolumeIndex`) in between.
+`consume_volume_keys` true did not bring the ramp back there: the launcher's own repeat (`VolumeKeys`) never
+stepped the volume, so the helpers do not seem to receive the volume key on this build, and the switch, made for
+the G03's double step, has nothing to repeat. The empty-list control was not run. The owner kept the helpers for
+the gear, YouTube and TCL buttons.
+
+## The path in the Android 12 source, and a Philips set measured both ways
+
+The Hisense reading above holds line by line in AOSP `android12-release`, and a fourth vendor measures the
+same way. With an input filter installed, `InputDispatcher::notifyKey` hands every key to the filter before
+anything is queued. For a key, `AccessibilityInputFilter` goes to `KeyboardInterceptor.onKeyEvent`, whose
+`getEventDelay` asks the window policy first for Volume Up and Down only
+(`mPolicy.interceptKeyBeforeDispatching(null, event, policyFlags)`), and returns without passing the event on
+when the answer is negative. On a TV (`mUseTvRouting`) `PhoneWindowManager.interceptKeyBeforeDispatching`
+answers a volume key with `dispatchDirectAudioEvent(event)` and `key_consumed`, which is `-1`. So the key
+takes its one volume step inside that check and is dropped there: no accessibility service is offered it,
+and it never reaches `InputDispatcher::dispatchKeyLocked`, the only place that records a held key
+(`mKeyRepeatState.lastKeyEntry`) and synthesizes its repeats every `getKeyRepeatDelay()`, 50 ms. That is
+why `onKeyEvent` has nothing to log, and why a helper cannot repeat the key itself either. Source:
+[KeyboardInterceptor.java](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android12-release/services/accessibility/java/com/android/server/accessibility/KeyboardInterceptor.java),
+[PhoneWindowManager.java](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android12-release/services/core/java/com/android/server/policy/PhoneWindowManager.java),
+[InputDispatcher.cpp](https://android.googlesource.com/platform/frameworks/native/+/refs/heads/android12-release/services/inputflinger/dispatcher/InputDispatcher.cpp).
+
+Measured on a Philips 65OLED804/12 (TPM191E, Android TV 12, `STT2.230526.001`, the fifth unit in
+[`examples/philips-tpm191e`](../../examples/philips-tpm191e/debloat.txt)), sound over HDMI ARC to a home
+cinema system, with `getevent -lt` on the remote and the volume event log in `dumpsys audio`. On a TV,
+`AudioService.handleVolumeKey` logs one `adjustSuggestedStreamVolume` for the down (`VOL_ADJUST_START`) and
+one for the up (`VOL_ADJUST_END`), so a pair is one press:
+
+| `enabled_accessibility_services` | Volume Down held | `dumpsys audio` |
+| --- | --- | --- |
+| `HomeKeyService` alone (`capabilities=8`) | 3.0 s | the start and the end, nothing between |
+| `null`, with `accessibility_enabled 0` | 1.07 s | the start, 14 repeats 50 ms apart from about 250 ms on, the end |
+
+The remote sent one `DOWN` and one `UP` per press in both runs, never a repeat of its own, so every step in
+the second row came from the dispatcher; 20 steps a second is also why a held key runs away on this set.
+Single presses step once either way. `settings put secure long_press_timeout` is no way to slow the ramp
+here: the dispatcher marks its first repeat `FLAG_LONG_PRESS`, which is what Home's long-press action waits
+for, and with 800 set that action still fired 400 ms after the down, before and after a reboot.
+
 ## Choices
 
 - **Keep the repeat and skip the helpers.** Do not pass `INPUT_KEY_SERVICE=1` or `HOME_KEY_SERVICE=1`

@@ -39,6 +39,7 @@
     <string name="off">Desactivat</string>
     <string name="enable">Activa</string>
     <string name="dock_edit">Edita el dock</string>
+    <string name="power_menu">Reinicia…</string>
     <string name="dock_edit_hint">Tria la posició del dock que vols canviar i prem D\'acord. Enrere per acabar.</string>
     <string name="dock_edit_pick_app">Ara tria l\'aplicació que hi vols posar i prem D\'acord. Enrere per triar una altra posició.</string>
     <string name="tile_add_to_dock">Afegeix al dock</string>
