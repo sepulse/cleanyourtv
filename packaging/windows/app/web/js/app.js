@@ -10,7 +10,7 @@ const token = document.querySelector('meta[name=cleanyourtv-token]').content;
 const state = {
   screen: 'start', brand: 'google', prepared: false, connection: 'idle', candidates: null,
   manualIP: '', ip: '', lists: [], matched: [], list: null, device: null, restore: false,
-  busy: false, error: null, output: '', result: null, homeKey: false, keepHome: false,
+  busy: false, error: null, output: '', result: null, homeKey: false, keepHome: false, keep: [], showAll: false,
 };
 let lastScreen;
 let currentJob;
@@ -51,7 +51,13 @@ function render() {
 function chooseScreen() {
   const matched = state.lists.filter(item => state.matched.includes(item.name));
   const brands = [...new Set(state.lists.map(item => item.brand))].sort();
-  const pick = item => button(item.tv, () => { state.list = item; render(); }, {
+  const pick = item => button(item.tv, () => {
+    if (state.list?.name !== item.name) {
+      state.keep = item.packages.filter(entry => entry.family).map(entry => entry.package);
+      state.showAll = false;
+    }
+    state.list = item; render();
+  }, {
     'aria-pressed': String(state.list?.name === item.name), id: `list-${item.name}`,
   });
   return h('section', { className: 'screen' }, heading(t(state.restore ? 'restore.title' : 'choose.title'), t('choose.note')),
@@ -70,14 +76,30 @@ function chooseScreen() {
 }
 
 function confirmScreen() {
+  const keepBox = entry => h('label', { className: 'check-label', for: `keep-${entry.package}` },
+    h('input', { id: `keep-${entry.package}`, type: 'checkbox', checked: state.keep.includes(entry.package),
+      onchange: event => {
+        state.keep = state.keep.filter(name => name !== entry.package);
+        if (event.target.checked) state.keep.push(entry.package);
+        render();
+      } }), h('code', { className: 'app-copy' }, entry.package));
   return h('section', { className: 'screen' }, heading(t(state.restore ? 'restore.title' : 'confirm.title'), state.list.tv),
     h('div', { className: 'card stack' }, h('p', {}, t('confirm.count', { n: state.list.packages.length })),
       h('p', {}, t(state.restore ? 'restore.explain' : 'confirm.body')),
       h('h2', {}, t('confirm.comments')),
       state.list.packages.filter(entry => entry.comment).map(entry => h('div', { className: 'app-copy package-copy' },
         h('code', {}, entry.package), h('p', {}, entry.comment)))),
+    !state.restore && h('div', { className: 'card stack' },
+      h('h2', {}, t('confirm.family')), h('p', {}, t('confirm.keep')),
+      state.list.packages.filter(entry => entry.family).map(keepBox),
+      state.list.packages.some(entry => !entry.family) && h('details', { className: 'category', open: state.showAll,
+        ontoggle: event => { state.showAll = event.target.open; } },
+        h('summary', {}, t('confirm.allApps')),
+        h('div', { className: 'stack' }, state.list.packages.filter(entry => !entry.family).map(keepBox)))),
     h('div', { className: 'actions' }, button(t('common.back'), () => actions.go('choose')),
-      button(t(state.restore ? 'restore.run' : 'confirm.run'), () => actions.run(state.restore ? 'restore' : 'disable'), { primary: true, id: 'confirm-run' })));
+      button(t(state.restore ? 'restore.run' : 'confirm.run'), () => actions.run(state.restore ? 'restore' : 'disable'), {
+        primary: true, disabled: !state.restore && state.list.packages.every(entry => state.keep.includes(entry.package)), id: 'confirm-run',
+      })));
 }
 
 function progressScreen() {
@@ -93,7 +115,7 @@ function progressScreen() {
 
 function doneScreen() {
   const result = state.result;
-  return h('section', { className: 'screen' }, heading(t(result.code === 0 ? 'done.title' : 'done.failed'), t('done.review')),
+  return h('section', { className: 'screen' }, heading(t(result.operation === 'adb-closed' ? 'adb.title' : result.code === 0 ? 'done.title' : 'done.failed'), t('done.review')),
     result.summary && h('div', { className: 'card stack' }, ['disabled', 'enabled', 'skipped', 'absent'].map(key =>
       h('p', {}, t(`done.${key}`, { n: result.summary[key] })))),
     result.operation === 'restore' && h('p', {}, t('restore.launcher'), tvMenu('settings'), ' → ', tvMenu('apps'), '.'),
@@ -103,6 +125,11 @@ function doneScreen() {
       h('label', { className: 'check-label', for: 'keep-home' }, h('input', { id: 'keep-home', type: 'checkbox', checked: state.keepHome,
         onchange: event => { state.keepHome = event.target.checked; render(); } }), t('launcher.keepHome')),
       button(t('common.retry'), () => actions.run('launcher'), { primary: true, disabled: !state.keepHome, id: 'launcher-retry' })),
+    ((['disable', 'restore'].includes(result.operation) && result.code === 0) || ['launcher', 'adb-closed'].includes(result.operation)) &&
+      h('div', { className: 'card stack' }, h('h2', {}, t('adb.title')), h('p', {}, t('adb.last')),
+        h('ol', { className: 'stack' }, ['debugging', 'revoke', 'restart'].map(key => h('li', {}, t(`adb.${key}`)))),
+        button(t('adb.check'), () => actions.run('adb-closed'), { primary: true, id: 'adb-check' }),
+        result.operation === 'adb-closed' && h('p', { role: 'status' }, t(`adb.${result.code === 0 ? 'closed' : result.code === 1 ? 'open' : 'failed'}`))),
     button(t('common.start'), () => actions.go('start'), { id: 'done-start' }));
 }
 
@@ -112,7 +139,7 @@ function launcherScreen() {
     h('div', { className: 'card stack' }, h('p', {}, t('launcher.body')),
       xiaomi && h('label', { className: 'check-label', for: 'home-key' }, h('input', { id: 'home-key', type: 'checkbox', checked: state.homeKey,
         onchange: event => { state.homeKey = event.target.checked; } }), t('launcher.homeKey'))),
-    h('div', { className: 'actions' }, button(t('common.skip'), () => actions.go('start'), { id: 'launcher-skip' }),
+    h('div', { className: 'actions' }, button(t('common.skip'), () => actions.go('done'), { id: 'launcher-skip' }),
       button(t('launcher.install'), () => actions.run('launcher'), { primary: true, id: 'launcher-install' })));
 }
 
@@ -151,7 +178,7 @@ function finishJob(job) {
     else {
       state.ip = job.ip; state.device = job.device; state.matched = job.matched;
       state.list = state.restore ? state.lists.find(item => item.name === job.lastList) ?? null : null;
-      state.homeKey = false; state.keepHome = false; state.screen = 'choose';
+      state.homeKey = false; state.keepHome = false; state.keep = []; state.screen = 'choose';
     }
   } else { state.result = job; state.screen = 'done'; }
   state.busy = false; state.connection = 'idle'; render();
@@ -185,7 +212,7 @@ const actions = {
     state.busy = true; state.screen = 'progress'; state.error = null; state.output = ''; render();
     currentJob = null;
     try {
-      finishJob(await followJob(operation, { ip: state.ip, list: state.list?.name, homeKey: state.homeKey, keepHome: state.keepHome }));
+      finishJob(await followJob(operation, { ip: state.ip, list: state.list?.name, homeKey: state.homeKey, keepHome: state.keepHome, keep: state.keep, restore: state.restore }));
     } catch { state.error = 'SCRIPT'; }
     state.busy = false; render();
   },
